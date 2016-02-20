@@ -52,6 +52,79 @@ if (isset($_POST['action']))
             }
             break;
             
+        case "load":
+            if ($user != "") 
+            {
+                $projects = "";
+                
+                $sql = $db->prepare("
+                    select projects.projectid,
+                           projects.projectname,
+                           projects.projectcolor,
+                           tasks.taskid,
+                           tasks.taskname,
+                           timelog.timelogid,
+                           timelog.timelogstart,
+                           timelog.timelogend
+                      from webapp.projects
+                      left
+                     outer
+                      join webapp.tasks
+                        on projects.projectid = tasks.projectid
+                      left
+                     outer
+                      join webapp.timelog
+                        on tasks.taskid = timelog.taskid
+                     where projects.username = ?
+                ");
+                $sql->bind_param("s", $user);
+                $sql->execute();
+                
+                $sql->bind_result($projectid, $projectname, $projectcolor, $taskid, $taskname, $timelogid, $timelogstart, $timelogend);
+                $projects .= "{";
+                $numprojs = 0;
+                while ($sql->fetch())
+                {
+                    if ($numprojs > 0)
+                    {
+                        $projects .= ",";
+                    }
+                    $projects .= "\"" . $projectid . "\": {";
+                    $projects .= "\"projectname\":\"" . $projectname . "\", ";
+                    $projects .= "\"projectcolor\":\"#" . $projectcolor . "\"";
+                    $projects .= "} ";
+                    $numprojs++;
+                }
+                $projects .= "}";
+                
+                $sql->close();
+    
+                echo "{ \"success\": true, \"projects\": " . $projects . " }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
+        case "createproject":
+            if ($user != "") 
+            {
+                $projectname = $_POST['projectname'];
+                $projectcolor = $_POST['projectcolor'];
+                
+                $sql = $db->prepare('insert into webapp.projects (username, projectname, projectcolor) values (?, ?, ?)');
+                $sql->bind_param('sss', $user, $projectname, $projectcolor);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
         default:
             echo "{ \"success\": false }";
             break;

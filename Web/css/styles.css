@@ -11,6 +11,19 @@
 .register {
     margin-right: 15px;
 }
-.login-errors {
+.login-errors,
+.login-success {
     display: none;
+}
+.page-dash .panel .input-group-addon {
+    min-width: 70px;
+}
+.project {
+    border-radius: 3px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+}
+.project h2 {
+    margin: 0;
+    text-shadow: 0 0 20px #FFF;
 }
