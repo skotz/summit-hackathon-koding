@@ -1,0 +1,16 @@
+.row-buff { 
+    margin-top: 15px; 
+}
+.login {
+    max-width: 400px;
+    margin: 0 auto;
+}
+.login .input-group-addon {
+    min-width: 100px;
+}
+.register {
+    margin-right: 15px;
+}
+.login-errors {
+    display: none;
+}
