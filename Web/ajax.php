@@ -4,6 +4,31 @@ require_once("lib/user.php");
 require_once("lib/mysql.php");
 require_once("lib/crypto.php");
 
+class Project
+{
+    public $projectid;
+    public $projectname;
+    public $projectcolor;
+    public $totalprojecttime;
+    public $tasks;
+}
+class Task
+{
+    public $taskid;
+    public $taskname;
+    public $timelogs;
+    public $totaltasktime;
+    public $isrecording;
+}
+class TimeLog
+{
+    public $timelogid;
+    public $timelogstart;
+    public $timelogend;
+    public $totalTime;
+    public $partialTime;
+}
+
 if (isset($_POST['action']))
 {
     switch ($_POST['action'])
@@ -53,10 +78,9 @@ if (isset($_POST['action']))
             break;
             
         case "load":
-            if ($user != "") 
+            if ($user != "" && isset($_POST["date"])) 
             {
-                $projects = "";
-                
+                $date = $_POST["date"];
                 $sql = $db->prepare("
                     select projects.projectid,
                            projects.projectname,
@@ -64,8 +88,44 @@ if (isset($_POST['action']))
                            tasks.taskid,
                            tasks.taskname,
                            timelog.timelogid,
-                           timelog.timelogstart,
-                           timelog.timelogend
+                           date_format(timelog.timelogstart, '%c/%e/%Y %r') as timelogstart,
+                           date_format(timelog.timelogend, '%c/%e/%Y %r') as timelogend,
+                           timelog.timelogend - timelog.timelogstart as totalTime,
+                           timestampdiff(second, timelog.timelogstart, str_to_date(?, '%c/%e/%Y %r')) as partialTime,
+                           (select sum(l2.timelogend - l2.timelogstart)
+                              from webapp.tasks t2
+                              left
+                             outer
+                              join webapp.timelog l2
+                                on t2.taskid = l2.taskid
+                             where l2.timelogend is not null
+                               and l2.timelogstart is not null
+                               and t2.projectid = projects.projectid) as totalprojecttime,
+                           (select sum(l2.timelogend - l2.timelogstart)
+                              from webapp.tasks t2
+                              left
+                             outer
+                              join webapp.timelog l2
+                                on t2.taskid = l2.taskid
+                             where l2.timelogend is not null
+                               and l2.timelogstart is not null
+                               and t2.taskid = tasks.taskid
+                               and t2.projectid = projects.projectid) as totaltasktime,
+                           (select count(*)
+                              from webapp.projects p2
+                              left
+                             outer
+                              join webapp.tasks t2
+                                on p2.projectid = t2.projectid
+                              left
+                             outer
+                              join webapp.timelog l2
+                                on t2.taskid = l2.taskid
+                             where l2.timelogend is null
+                               and l2.timelogstart is not null
+                               and p2.username = projects.username
+                               and p2.projectid = projects.projectid
+                               and t2.taskid = tasks.taskid) as isrecording
                       from webapp.projects
                       left
                      outer
@@ -77,29 +137,129 @@ if (isset($_POST['action']))
                         on tasks.taskid = timelog.taskid
                      where projects.username = ?
                 ");
-                $sql->bind_param("s", $user);
+                $sql->bind_param("ss", $date, $user);
                 $sql->execute();
                 
-                $sql->bind_result($projectid, $projectname, $projectcolor, $taskid, $taskname, $timelogid, $timelogstart, $timelogend);
-                $projects .= "{";
-                $numprojs = 0;
+                $sql->bind_result($projectid, $projectname, $projectcolor, $taskid, $taskname, $timelogid, $timelogstart, $timelogend, $totaltime, $partialTime, $totalprojecttime, $totaltasktime, $recording);
+                $projects = array();
                 while ($sql->fetch())
                 {
-                    if ($numprojs > 0)
+                    // See if we already have this project in the list
+                    $found = false;
+                    foreach ($projects as $proj)
                     {
-                        $projects .= ",";
+                        if ($proj->projectid == $projectid)
+                        {
+                            // See if this project already has this task in the list
+                            $foundtask = false;
+                            foreach ($proj->tasks as $task)
+                            {
+                                if ($task->taskid == $taskid)
+                                {
+                                    $log = new TimeLog();
+                                    $log->timelogid = $timelogid;
+                                    $log->timelogstart = $timelogstart;
+                                    $log->timelogend = $timelogend;
+                                    $log->partialTime = $partialTime;
+                                    $log->totalTime = $totaltime;
+                                    
+                                    array_push($task->timelogs, $log);
+                                    
+                                    $foundtask = true;
+                                    break;
+                                }
+                            }
+                            
+                            // Add a new task to the project
+                            if (!$foundtask) 
+                            {
+                                $task = new Task();
+                                $task->taskid = $taskid;
+                                $task->taskname = $taskname;
+                                $task->isrecording = $recording;
+                                $task->totaltasktime = $totaltasktime;
+                                $task->timelogs = array();
+                                
+                                $log = new TimeLog();
+                                $log->timelogid = $timelogid;
+                                $log->timelogstart = $timelogstart;
+                                $log->timelogend = $timelogend;
+                                $log->partialTime = $partialTime;
+                                $log->totalTime = $totaltime;
+                                
+                                array_push($task->timelogs, $log);
+                                array_push($proj->tasks, $task);
+                            }
+                            
+                            $found = true;
+                            break;
+                        }
                     }
-                    $projects .= "\"" . $projectid . "\": {";
-                    $projects .= "\"projectname\":\"" . $projectname . "\", ";
-                    $projects .= "\"projectcolor\":\"#" . $projectcolor . "\"";
-                    $projects .= "} ";
-                    $numprojs++;
-                }
-                $projects .= "}";
-                
+                    
+                    // Add a new project to the list
+                    if (!$found)
+                    {
+                        $proj = new Project();
+                        $proj->projectid = $projectid;
+                        $proj->projectname = $projectname;
+                        $proj->projectcolor = $projectcolor;
+                        $proj->totalprojecttime = $totalprojecttime;
+                        $proj->tasks = array();
+                        
+                        $task = new Task();
+                        $task->taskid = $taskid;
+                        $task->taskname = $taskname;
+                        $task->isrecording = $recording;
+                        $task->totaltasktime = $totaltasktime;
+                        $task->timelogs = array();
+                        
+                        $log = new TimeLog();
+                        $log->timelogid = $timelogid;
+                        $log->timelogstart = $timelogstart;
+                        $log->timelogend = $timelogend;
+                        $log->partialTime = $partialTime;
+                        $log->totalTime = $totaltime;
+                        
+                        array_push($task->timelogs, $log);
+                        array_push($proj->tasks, $task);
+                        array_push($projects, $proj);
+                    }                    
+                }                
                 $sql->close();
+                
+                $stringproj = "{";
+                foreach ($projects as $proj)
+                {
+                    $stringproj .= "\"" . $proj->projectid . "\": {";
+                    $stringproj .= "\"projectname\":\"" . $proj->projectname . "\",";
+                    $stringproj .= "\"projectcolor\":\"#" . $proj->projectcolor . "\",";
+                    $stringproj .= "\"totalprojecttime\":\"" . $proj->totalprojecttime . "\",";
+                    $stringproj .= "\"tasks\": {";
+                    foreach ($proj->tasks as $task)
+                    {
+                        $stringproj .= "\"" . $task->taskid . "\": {";
+                        $stringproj .= "\"taskid\":\"" . $task->taskid . "\",";
+                        $stringproj .= "\"taskname\":\"" . $task->taskname . "\",";
+                        $stringproj .= "\"totaltasktime\":\"" . $task->totaltasktime . "\",";
+                        $stringproj .= "\"recording\":" . ($task->isrecording != "0" ? "true" : "false") . ",";
+                        $stringproj .= "\"timelogs\": {";                        
+                        foreach ($task->timelogs as $log)
+                        {
+                            $stringproj .= "\"" . $log->timelogid . "\": {";
+                            $stringproj .= "\"timelogstart\":\"" . $log->timelogstart . "\",";
+                            $stringproj .= "\"timelogend\":\"" . $log->timelogend . "\",";
+                            $stringproj .= "\"totalTime\":\"" . $log->totalTime . "\",";
+                            $stringproj .= "\"partialTime\":\"" . $log->partialTime . "\",";
+                            $stringproj .= "},";
+                        }
+                        $stringproj .= "}},";
+                    }
+                    $stringproj .= "}},";
+                }
+                $stringproj .= "}";
+                $stringproj = str_replace(",}", "}", $stringproj);
     
-                echo "{ \"success\": true, \"projects\": " . $projects . " }";
+                echo "{ \"success\": true, \"projects\": " . $stringproj . " }";
             }
             else
             {
@@ -115,6 +275,60 @@ if (isset($_POST['action']))
                 
                 $sql = $db->prepare('insert into webapp.projects (username, projectname, projectcolor) values (?, ?, ?)');
                 $sql->bind_param('sss', $user, $projectname, $projectcolor);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
+        case "createtask":
+            if ($user != "") 
+            {
+                $taskname = $_POST['taskname'];
+                $projectid = $_POST['projectid'];
+                
+                $sql = $db->prepare('insert into webapp.tasks (projectid, taskname) values (?, ?)');
+                $sql->bind_param('ss', $projectid, $taskname);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
+        case "startlog":
+            if ($user != "") 
+            {
+                $taskid = $_POST['taskid'];
+                $timelogstart = $_POST['timelogstart'];
+                                
+                $sql = $db->prepare("insert into webapp.timelog (taskid, timelogstart, timelogend) values (?, str_to_date(?, '%c/%e/%Y %r'), null)");
+                $sql->bind_param('ss', $taskid, $timelogstart);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
+        case "endlog":
+            if ($user != "") 
+            {
+                $taskid = $_POST['taskid'];
+                $timelogend = $_POST['timelogend'];
+                                
+                $sql = $db->prepare("update webapp.timelog set timelogend = str_to_date(?, '%c/%e/%Y %r') where taskid = ? and timelogend is null");
+                $sql->bind_param('ss', $timelogend, $taskid);
                 $sql->execute();
 
                 echo "{ \"success\": true }";

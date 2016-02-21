@@ -123,6 +123,35 @@ require_once("lib/user.php");
                         </div>
                     </div>
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Tasks</div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="task-name-label">Name</span>
+                                    <input type="text" class="form-control" id="task-name" aria-describedby="task-name-label">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-buff">
+                            <div class="col-xs-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="project-id-label">Project</span>
+                                    <select class="form-control" id="task-project" aria-describedby="project-id-label">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-buff">
+                            <div class="col-xs-12">
+                                <button type="button" class="btn btn-default pull-right" id="task-add" aria-label="Left Align">
+                                    Create
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
