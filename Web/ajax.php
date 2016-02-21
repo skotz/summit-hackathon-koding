@@ -38,7 +38,8 @@ if (isset($_POST['action']))
             break;
             
         case "login":
-            if (isset($_POST['username']) && isset($_POST['password'])) 
+            if (isset($_POST['username']) && isset($_POST['password']) &&
+                strlen($_POST['username']) > 0 && strlen($_POST['password']) > 0) 
             {
                 $username = $_POST['username'];
                 $password = $_POST['password'];
@@ -58,7 +59,9 @@ if (isset($_POST['action']))
             break;
             
         case "register":
-            if (isset($_POST['username']) && isset($_POST['password']) && !usernameExists($_POST['username'])) 
+            if (isset($_POST['username']) && isset($_POST['password']) && 
+                strlen($_POST['username']) > 0 && strlen($_POST['password']) > 0 &&
+                !usernameExists($_POST['username'])) 
             {
                 $username = $_POST['username'];
                 $password = $_POST['password'];
@@ -81,6 +84,7 @@ if (isset($_POST['action']))
             if ($user != "" && isset($_POST["date"])) 
             {
                 $date = $_POST["date"];
+                $allTime = 0;
                 $sql = $db->prepare("
                     select projects.projectid,
                            projects.projectname,
@@ -223,6 +227,8 @@ if (isset($_POST['action']))
                         array_push($task->timelogs, $log);
                         array_push($proj->tasks, $task);
                         array_push($projects, $proj);
+                        
+                        $allTime += $totalprojecttime;
                     }                    
                 }                
                 $sql->close();
@@ -234,6 +240,7 @@ if (isset($_POST['action']))
                     $stringproj .= "\"projectname\":\"" . $proj->projectname . "\",";
                     $stringproj .= "\"projectcolor\":\"#" . $proj->projectcolor . "\",";
                     $stringproj .= "\"totalprojecttime\":\"" . $proj->totalprojecttime . "\",";
+                    $stringproj .= "\"alltime\":\"" . $allTime . "\",";
                     $stringproj .= "\"tasks\": {";
                     foreach ($proj->tasks as $task)
                     {

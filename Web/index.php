@@ -87,7 +87,15 @@ require_once("lib/user.php");
         <div class="row">
             <div class="col-xs-12">
                 <div class="page-header">
-                    <h1>Hey <span class="username"><?= $user ?></span>! <a href="javascript: void(0)" id="logout" class="btn btn-default pull-right">Sign Out</a></h1>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <h1>Hey <span class="username"><?= $user ?></span>!</h1>
+                        </div>
+                        <div class="col-sm-4 col-menu">
+                            <a href="javascript: void(0)" id="logout" class="btn btn-default pull-right">Sign Out</a>
+                            <a href="javascript: void(0)" id="view-task" class="btn btn-primary pull-right">%</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

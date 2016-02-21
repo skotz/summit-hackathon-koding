@@ -7,13 +7,20 @@ $(function(){
     // Fill the background of an element to a certain progress level
     var setProgress = function ($el, percent) {
         $color = "255, 255, 255";
+        $opacity1 = 0.8;
+        $opacity2 = 0.6;
         if ($el.hasClass("recording")) {
             $color = "255, 0, 0";
         }
-        $el.css("background", "-webkit-linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
-        $el.css("background", "-moz-linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
-        $el.css("background", "-ms-linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
-        $el.css("background", "linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
+        if ($el.data("projectcolor") == "yes") {
+            $color = $el.css("background-color").replace('rgb(', '').replace(')', '');
+            $opacity1 = 1.0;
+            $opacity2 = 0.8;
+        }
+        $el.css("background", "-webkit-linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
+        $el.css("background", "-moz-linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
+        $el.css("background", "-ms-linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
+        $el.css("background", "linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
     };
     
     // Set up any events related to projects or tasks
@@ -109,13 +116,21 @@ $(function(){
                                 text : proj.projectname 
                             }));
     
-                            markup += "<div class='project' style='background: " + proj.projectcolor + "' data-projectid='" + key + "'>";
+                            markup += "<div class='project' style='background: " + proj.projectcolor + "' data-projectcolor='yes' data-projectid='" + key + "' data-percent='" + (100 * proj.totalprojecttime / proj.alltime) + "'>";
+                            markup += "<div class='row'>";
+                            markup += "<div class='col-xs-8'>";
                             markup += "<h2>";
                             markup += proj.projectname; 
-                            markup += "<div class='pull-right task-time'>";
-                            markup += proj.totalprojecttime > 0 ? proj.totalprojecttime.toHHMMSS() : ""; 
-                            markup += "</div>";
                             markup += "</h2>";
+                            markup += "</div>"; // end col-xs-8
+                            markup += "<div class='col-xs-4'>";
+                            markup += "<h2>";
+                            markup += "<div class='pull-right task-time proj'>";
+                            markup += proj.totalprojecttime > 0 ? proj.totalprojecttime.toHHMMSS() : ""; 
+                            markup += "</div>"; // end task-time
+                            markup += "</h2>";
+                            markup += "</div>"; // end col-xs-4
+                            markup += "</div>"; // end row
                             markup += "<div class='alltasks'>";
                             
                             for (var tkey in proj.tasks) {
@@ -154,7 +169,11 @@ $(function(){
                                     // Create the task markup
                                     if (task.taskname.length) {
                                         markup += "<div class='task " + (task.recording ? "recording" : "") + "' data-taskid='" + task.taskid + "' data-percent='" + (100 * task.totaltasktime / proj.totalprojecttime) + "'>";
+                                        markup += "<div class='row'>";
+                                        markup += "<div class='col-xs-8'>";
                                         markup += task.taskname;
+                                        markup += "</div>"; // end col-xs-8
+                                        markup += "<div class='col-xs-4'>";
                                         if (task.recording && partialTime >= 0) {
                                             markup += "<div class='pull-right task-time'>" + partialTime.toHHMMSS() + "</div>";  
                                         } else {
@@ -162,7 +181,9 @@ $(function(){
                                             markup += task.totaltasktime > 0 ? task.totaltasktime.toHHMMSS() : "<em>Click to start recording!</em>"; 
                                             markup += "</div>";                                        
                                         }
-                                        markup += "</div>";
+                                        markup += "</div>"; // end col-xs-4
+                                        markup += "</div>"; // end row
+                                        markup += "</div>"; // end task
                                     } else {
                                         // There are no tasks for this project, so create a helpful hint
                                         markup += "<div class='task hint'>";
@@ -172,8 +193,8 @@ $(function(){
                                 }
                             }
                             
-                            markup += "</div>";
-                            markup += "</div>";
+                            markup += "</div>"; // end alltasks
+                            markup += "</div>"; // end project
     
                             //console.warn(proj);
                         }
@@ -188,11 +209,19 @@ $(function(){
                     
                     $(".all-projects").html(markup);
                     
-                    // Set the progress backgrounds
-                    $.each($("[data-taskid]"), function () {
-                        setProgress($(this), $(this).data("percent"));                     
-                    });
-                    
+                    if ($("#view-task").hasClass("show-percentages")) {
+                        // Set the progress backgrounds
+                        $.each($("[data-taskid]"), function () {
+                            setProgress($(this), $(this).data("percent"));
+                            $(this).find(".task-time").html(Math.round($(this).data("percent")) + "%");
+                        });
+                        $.each($("[data-projectid]"), function () {
+                            // setProgress($(this), $(this).data("percent"));
+                            var percent = Math.round($(this).data("percent"));
+                            $(this).find(".proj.task-time").html(percent > 0 ? percent + "%" : "");
+                        });
+                    }
+        
                     initEvents();
                 }
             }
@@ -202,6 +231,11 @@ $(function(){
     if ($(".page-dash:visible").length) {
         loadDash();
     }
+    
+    $("#view-task").click(function() {
+        $(this).toggleClass("show-percentages").html($(this).hasClass("show-percentages") ? "#" : "%");
+        loadDash();
+    });
    
     $("#login").click(function() {
         $(".login-errors").stop().hide();
@@ -302,7 +336,7 @@ $(function(){
         if ($("#task-name").val().length == 0) {
             $(".task-errors .error-message").html("Task name is required.");
             $(".task-errors").stop().fadeIn();
-        } else if ($("#task-project").val().length == 0) {
+        } else if ($("#task-project").val() != null && $("#task-project").val().length == 0) {
             $(".task-errors .error-message").html("Project is required.");
             $(".task-errors").stop().fadeIn();
         } else {
@@ -362,5 +396,5 @@ $(function(){
     setDefault("task-name", "task-add");
     setDefault("task-project", "task-add");
     
-    $("#project-color").colorpicker();
+    $("#project-color").colorpicker({ format: 'hex' });
 });
