@@ -357,6 +357,10 @@ $(function(){
     };
     setDefault("username", "login");
     setDefault("password", "login");
+    setDefault("project-name", "project-add");
+    setDefault("project-color", "project-add");
+    setDefault("task-name", "task-add");
+    setDefault("task-project", "task-add");
     
     $("#project-color").colorpicker();
 });
