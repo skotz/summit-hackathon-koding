@@ -1,4 +1,4 @@
-= Hackathon Submission
+# Hackathon Submission
 
 This is my submission to the 2016 [hack.summit() Virtual Hackathon](https://www.koding.com/Hackathon) 48 hour challenge.
 
