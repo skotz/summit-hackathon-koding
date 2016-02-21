@@ -12,7 +12,11 @@
     margin-right: 15px;
 }
 .login-errors,
-.login-success {
+.login-success,
+.project-errors,
+.project-success,
+.task-errors,
+.task-success {
     display: none;
 }
 .page-dash .panel .input-group-addon {
@@ -25,7 +29,7 @@
 }
 .project h2 {
     margin: 0;
-    text-shadow: 0 0 20px #FFF;
+    text-shadow: 0 0 20px #FFF, 0 0 6px #FFF;
 }
 .task {
     background-color: rgba(255, 255, 255, 0.8);
@@ -41,4 +45,8 @@
 .task.recording {
     background-color: rgba(255, 0, 0, 0.8);
     color: #FFFFFF;
+}
+footer {
+    opacity: 0.5;
+    text-align: center;
 }

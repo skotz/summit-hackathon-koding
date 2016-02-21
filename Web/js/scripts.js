@@ -51,17 +51,15 @@ $(function(){
     };
     
     String.prototype.toHHMMSS = function () {
-        // http://stackoverflow.com/a/6313008
+        // Adapted from http://stackoverflow.com/a/6313008
         var sec_num = parseInt(this, 10);
-        var hours   = Math.floor(sec_num / 3600);
+        var hours = Math.floor(sec_num / 3600);
         var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
         var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-        if (hours   < 10) {hours   = "0"+hours;}
-        if (minutes < 10) {minutes = "0"+minutes;}
-        if (seconds < 10) {seconds = "0"+seconds;}
-        var time    = hours+':'+minutes+':'+seconds;
-        return time;
+        if (hours < 10) { hours = "0" + hours; }
+        if (minutes < 10) { minutes = "0" + minutes; }
+        if (seconds < 10) { seconds = "0" + seconds; }
+        return (hours != "00" ? hours + ':' : "") + minutes + ':' + seconds
     };
     
     // Create the markup for projects and tasks
@@ -87,9 +85,11 @@ $(function(){
                     }
                     
                     var markup = '';
+                    var projects = 0;
                     for (var key in data.projects) {
                         if (data.projects.hasOwnProperty(key)) {
                             var proj = data.projects[key];
+                            projects++;
                             
                             // Update the project dropdown for adding new tasks
                             $('#task-project').append($('<option>', { 
@@ -98,7 +98,12 @@ $(function(){
                             }));
     
                             markup += "<div class='project' style='background: " + proj.projectcolor + "' data-projectid='" + key + "'>";
-                            markup += "<h2>" + proj.projectname + "</h2>";
+                            markup += "<h2>";
+                            markup += proj.projectname; 
+                            markup += "<div class='pull-right task-time'>";
+                            markup += proj.totalprojecttime > 0 ? proj.totalprojecttime.toHHMMSS() : ""; 
+                            markup += "</div>";
+                            markup += "</h2>";
                             markup += "<div class='alltasks'>";
                             
                             for (var tkey in proj.tasks) {
@@ -119,6 +124,10 @@ $(function(){
                                                     partialTime = log.partialTime;
                                                     var updateTime = function () {
                                                         var seconds = (new Date() - new Date(thisLogStart)) / 1000;
+                                                        if (seconds < 0) {
+                                                            // HACK for daylight savings... Figure out UTC parsing later
+                                                            seconds += 60 * 60;
+                                                        }
                                                         $("[data-taskid='" + thisTask + "'] .task-time").html(seconds.toString().toHHMMSS());
                                                     };
                                                     intervals.push(setInterval(updateTime, 1000));
@@ -127,15 +136,25 @@ $(function(){
                                         }
                                     }
                                     
-                                    markup += "<div class='task " + (task.recording ? "recording" : "") + "' data-taskid='" + task.taskid + "'>";
-                                    markup += task.taskname;
-                                    console.log(partialTime)
-                                    if (task.recording && partialTime >= 0) {
-                                        markup += "<div class='pull-right task-time'>" + partialTime.toHHMMSS() + "</div>";  
+                                    // Create the task markup
+                                    if (task.taskname.length) {
+                                        markup += "<div class='task " + (task.recording ? "recording" : "") + "' data-taskid='" + task.taskid + "'>";
+                                        markup += task.taskname;
+                                        console.log(partialTime)
+                                        if (task.recording && partialTime >= 0) {
+                                            markup += "<div class='pull-right task-time'>" + partialTime.toHHMMSS() + "</div>";  
+                                        } else {
+                                            markup += "<div class='pull-right task-time'>";
+                                            markup += task.totaltasktime > 0 ? task.totaltasktime.toHHMMSS() : "<em>Click to start recording!</em>"; 
+                                            markup += "</div>";                                        
+                                        }
+                                        markup += "</div>";
                                     } else {
-                                        markup += "<div class='pull-right task-time'>" + task.totaltasktime.toHHMMSS() + "</div>";                                        
+                                        // There are no tasks for this project, so create a helpful hint
+                                        markup += "<div class='task hint'>";
+                                        markup += "<em>Add tasks to this project using the Tasks panel.</em>";
+                                        markup += "</div>";
                                     }
-                                    markup += "</div>";
                                 }
                             }
                             
@@ -144,6 +163,13 @@ $(function(){
     
                             console.warn(proj);
                         }
+                    }
+                    
+                    if (projects == 0) {
+                        // The user doesn't have any projects yet, so show a helpful hint                    
+                        markup += "<div class='project' style='background: #56cf54'>";
+                        markup += "<h2>Add projects using the Projects panel to begin.</h2>";
+                        markup += "<div class='alltasks'>";
                     }
                     
                     $(".all-projects").html(markup);
@@ -216,45 +242,73 @@ $(function(){
     });
     
     $("#project-add").click(function() {
-        $.ajax({
-            url: 'ajax.php',
-            type: 'post',
-            data: { 
-                'action': 'createproject', 
-                'projectname': $("#project-name").val(), 
-                'projectcolor': $("#project-color").val().replace("#", "")
-            },
-            success: function(response) {
-                var data = $.parseJSON(response);
-                if (data.success) {
-                    $("#project-name").val("");
-                    $("#project-color").val("");
-                    loadDash();
-                }
-            },
-            error: needToLogIn
-        });        
+        $(".project-errors").stop().hide();
+        $(".project-success").stop().hide();
+        if ($("#project-name").val().length == 0) {
+            $(".project-errors .error-message").html("Project name is required.");
+            $(".project-errors").stop().fadeIn();
+        } else if ($("#project-color").val().replace("#", "").length != 6) {
+            $(".project-errors .error-message").html("Color must be a 6 character hexidecimal color code.");
+            $(".project-errors").stop().fadeIn();
+        } else {
+            $.ajax({
+                url: 'ajax.php',
+                type: 'post',
+                data: { 
+                    'action': 'createproject', 
+                    'projectname': $("#project-name").val(), 
+                    'projectcolor': $("#project-color").val().replace("#", "")
+                },
+                success: function(response) {
+                    var data = $.parseJSON(response);
+                    if (data.success) {
+                        $("#project-name").val("");
+                        $("#project-color").val("");
+                        $(".project-success").stop().fadeIn().delay(5000).fadeOut();
+                        loadDash();
+                    } else {
+                        $(".project-errors .error-message").html("Something went wrong...");
+                        $(".project-errors").stop().fadeIn();
+                    }
+                },
+                error: needToLogIn
+            });
+        }
     });
     
     $("#task-add").click(function() {
-        $.ajax({
-            url: 'ajax.php',
-            type: 'post',
-            data: { 
-                'action': 'createtask', 
-                'taskname': $("#task-name").val(), 
-                'projectid': $("#task-project").val()
-            },
-            success: function(response) {
-                var data = $.parseJSON(response);
-                if (data.success) {
-                    $("#task-name").val("");
-                    $("#task-project").val("");
-                    loadDash();
-                }
-            },
-            error: needToLogIn
-        });        
+        $(".task-errors").stop().hide();
+        $(".task-success").stop().hide();
+        if ($("#task-name").val().length == 0) {
+            $(".task-errors .error-message").html("Task name is required.");
+            $(".task-errors").stop().fadeIn();
+        } else if ($("#task-project").val().length == 0) {
+            $(".task-errors .error-message").html("Project is required.");
+            $(".task-errors").stop().fadeIn();
+        } else {
+            $.ajax({
+                url: 'ajax.php',
+                type: 'post',
+                data: { 
+                    'action': 'createtask', 
+                    'taskname': $("#task-name").val(), 
+                    'projectid': $("#task-project").val()
+                },
+                success: function(response) {
+                    var data = $.parseJSON(response);
+                    if (data.success) {
+                        $("#task-name").val("");
+                        $("#task-project").val("");
+                        $(".task-success").stop().fadeIn().delay(5000).fadeOut();
+                        loadDash();
+                    } else {
+                        $(".task-errors .error-message").html("Something went wrong...");
+                        $(".task-errors").stop().fadeIn();
+                    }
+                },
+                error: needToLogIn
+            });     
+        }   
     });
     
     

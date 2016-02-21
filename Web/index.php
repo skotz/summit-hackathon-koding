@@ -100,6 +100,20 @@ require_once("lib/user.php");
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-xs-12">
+                                <div class="alert alert-danger project-errors" role="alert">
+                                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                    <span class="sr-only">Oops!</span>
+                                    <span class="error-message"></span>
+                                </div>
+                                <div class="alert alert-success project-success" role="alert">
+                                    <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+                                    <span class="sr-only">Yay!</span>
+                                    Project successfully added!
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
                                 <div class="input-group">
                                     <span class="input-group-addon" id="project-name-label">Name</span>
                                     <input type="text" class="form-control" id="project-name" aria-describedby="project-name-label">
@@ -126,6 +140,20 @@ require_once("lib/user.php");
                 <div class="panel panel-default">
                     <div class="panel-heading">Tasks</div>
                     <div class="panel-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="alert alert-danger task-errors" role="alert">
+                                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                    <span class="sr-only">Oops!</span>
+                                    <span class="error-message"></span>
+                                </div>
+                                <div class="alert alert-success task-success" role="alert">
+                                    <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+                                    <span class="sr-only">Yay!</span>
+                                    Task successfully added!
+                                </div>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="input-group">
@@ -155,6 +183,9 @@ require_once("lib/user.php");
             </div>
         </div>
     </div>
+    <footer>
+        &copy; 2016 Scott Clayton &bull; <a href="https://www.koding.com/Hackathon" target="_blank">Virtual Hackathon</a>
+    </footer>
     <script src="//code.jquery.com/jquery-2.2.0.min.js"></script>
     <script src="js/bootstrap-colorpicker.min.js"></script>
     <script src="js/scripts.js"></script>
