@@ -213,7 +213,8 @@ $(function(){
                         // Set the progress backgrounds
                         $.each($("[data-taskid]"), function () {
                             setProgress($(this), $(this).data("percent"));
-                            $(this).find(".task-time").html(Math.round($(this).data("percent")) + "%");
+                            var percent = Math.round($(this).data("percent"));
+                            $(this).find(".task-time").html(percent > 0 ? percent + "%" : "");
                         });
                         $.each($("[data-projectid]"), function () {
                             // setProgress($(this), $(this).data("percent"));
