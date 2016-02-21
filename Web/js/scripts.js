@@ -4,6 +4,18 @@ $(function(){
         location.reload();
     };
 
+    // Fill the background of an element to a certain progress level
+    var setProgress = function ($el, percent) {
+        $color = "255, 255, 255";
+        if ($el.hasClass("recording")) {
+            $color = "255, 0, 0";
+        }
+        $el.css("background", "-webkit-linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
+        $el.css("background", "-moz-linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
+        $el.css("background", "-ms-linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
+        $el.css("background", "linear-gradient(left, rgba(" + $color + ", 0.8) " + percent + "%, rgba(" + $color + ", 0.6) " + percent + "%)");
+    };
+    
     // Set up any events related to projects or tasks
     var initEvents = function () {
         $("[data-taskid]").click(function() {
@@ -122,14 +134,17 @@ $(function(){
                                                 var thisLogStart = log.timelogstart;
                                                 if (log.timelogend.length == 0) {
                                                     partialTime = log.partialTime;
-                                                    var updateTime = function () {
-                                                        var seconds = (new Date() - new Date(thisLogStart)) / 1000;
-                                                        if (seconds < 0) {
-                                                            // HACK for daylight savings... Figure out UTC parsing later
-                                                            seconds += 60 * 60;
-                                                        }
-                                                        $("[data-taskid='" + thisTask + "'] .task-time").html(seconds.toString().toHHMMSS());
-                                                    };
+                                                    var updateTime = (function(thisTask, thisLogStart) { 
+                                                        return function () {
+                                                            console.log(thisTask);
+                                                            var seconds = (new Date() - new Date(thisLogStart)) / 1000;
+                                                            if (seconds < 0) {
+                                                                // HACK for daylight savings... Figure out UTC parsing later
+                                                                seconds += 60 * 60;
+                                                            }
+                                                            $("[data-taskid='" + thisTask + "'] .task-time").html(seconds.toString().toHHMMSS());
+                                                        };
+                                                    })(thisTask, thisLogStart);
                                                     intervals.push(setInterval(updateTime, 1000));
                                                 }
                                             }
@@ -138,9 +153,8 @@ $(function(){
                                     
                                     // Create the task markup
                                     if (task.taskname.length) {
-                                        markup += "<div class='task " + (task.recording ? "recording" : "") + "' data-taskid='" + task.taskid + "'>";
+                                        markup += "<div class='task " + (task.recording ? "recording" : "") + "' data-taskid='" + task.taskid + "' data-percent='" + (100 * task.totaltasktime / proj.totalprojecttime) + "'>";
                                         markup += task.taskname;
-                                        console.log(partialTime)
                                         if (task.recording && partialTime >= 0) {
                                             markup += "<div class='pull-right task-time'>" + partialTime.toHHMMSS() + "</div>";  
                                         } else {
@@ -161,7 +175,7 @@ $(function(){
                             markup += "</div>";
                             markup += "</div>";
     
-                            console.warn(proj);
+                            //console.warn(proj);
                         }
                     }
                     
@@ -173,6 +187,12 @@ $(function(){
                     }
                     
                     $(".all-projects").html(markup);
+                    
+                    // Set the progress backgrounds
+                    $.each($("[data-taskid]"), function () {
+                        setProgress($(this), $(this).data("percent"));                     
+                    });
+                    
                     initEvents();
                 }
             }
