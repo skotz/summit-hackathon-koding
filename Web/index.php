@@ -184,7 +184,9 @@ require_once("lib/user.php");
         </div>
     </div>
     <footer>
-        &copy; 2016 Scott Clayton &bull; <a href="https://www.koding.com/Hackathon" target="_blank">Virtual Hackathon</a>
+        &copy; 2016 Scott Clayton &bull; 
+        <a href="https://github.com/skotz/summit-hackathon-koding" target="_blank">GitHub</a> &bull; 
+        <a href="https://www.koding.com/Hackathon" target="_blank">Virtual Hackathon</a>
     </footer>
     <script src="//code.jquery.com/jquery-2.2.0.min.js"></script>
     <script src="js/bootstrap-colorpicker.min.js"></script>

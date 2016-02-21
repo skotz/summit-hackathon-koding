@@ -42,6 +42,47 @@ function loginUser($username, $password)
     return $success;
 }
 
+// Verify that a project is associated with a given user
+function projectBelongsToUser($projectid, $username)
+{
+    global $db;
+    $success = false;    
+    $sql = $db->prepare("select count(*) from webapp.projects where username = ? and projectid = ?");
+    $sql->bind_param("ss", $username, $projectid);
+    $sql->execute();    
+    $sql->bind_result($token);            
+    if ($sql->fetch())
+    {
+        $success = $token == 1;
+    }
+    $sql->close();
+    return $success;
+}
+
+// Verify that a task is associated with a given user
+function taskBelongsToUser($taskid, $username)
+{
+    global $db;
+    $success = false;    
+    $sql = $db->prepare("
+        select count(*) 
+          from webapp.projects 
+          join webapp.tasks
+            on projects.projectid = tasks.projectid
+         where projects.username = ? 
+           and tasks.taskid = ?
+    ");
+    $sql->bind_param("ss", $username, $taskid);
+    $sql->execute();    
+    $sql->bind_result($token);            
+    if ($sql->fetch())
+    {
+        $success = $token == 1;
+    }
+    $sql->close();
+    return $success;
+}
+
 // Get the username of the logged in user
 $user = "";
 if (isset($_SESSION["username"]) && strlen($_SESSION["username"]) > 0)

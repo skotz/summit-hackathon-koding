@@ -286,7 +286,7 @@ if (isset($_POST['action']))
             break;
             
         case "createtask":
-            if ($user != "") 
+            if ($user != "" && isset($_POST['taskname']) && isset($_POST['projectid']) && projectBelongsToUser($_POST['projectid'], $user)) 
             {
                 $taskname = $_POST['taskname'];
                 $projectid = $_POST['projectid'];
@@ -304,7 +304,7 @@ if (isset($_POST['action']))
             break;
             
         case "startlog":
-            if ($user != "") 
+            if ($user != "" && isset($_POST['taskid']) && isset($_POST['timelogstart'])) 
             {
                 $taskid = $_POST['taskid'];
                 $timelogstart = $_POST['timelogstart'];
@@ -322,7 +322,7 @@ if (isset($_POST['action']))
             break;
             
         case "endlog":
-            if ($user != "") 
+            if ($user != "" && isset($_POST['taskid']) && isset($_POST['timelogend']) && taskBelongsToUser($_POST['taskid'], $user))
             {
                 $taskid = $_POST['taskid'];
                 $timelogend = $_POST['timelogend'];
