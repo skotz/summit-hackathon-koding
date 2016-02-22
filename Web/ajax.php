@@ -94,9 +94,9 @@ if (isset($_POST['action']))
                            timelog.timelogid,
                            date_format(timelog.timelogstart, '%c/%e/%Y %r') as timelogstart,
                            date_format(timelog.timelogend, '%c/%e/%Y %r') as timelogend,
-                           timelog.timelogend - timelog.timelogstart as totalTime,
+                           timestampdiff(second, timelog.timelogstart, timelog.timelogend) as totalTime,
                            timestampdiff(second, timelog.timelogstart, str_to_date(?, '%c/%e/%Y %r')) as partialTime,
-                           (select sum(l2.timelogend - l2.timelogstart)
+                           (select sum(timestampdiff(second, l2.timelogstart, l2.timelogend))
                               from webapp.tasks t2
                               left
                              outer
@@ -105,7 +105,7 @@ if (isset($_POST['action']))
                              where l2.timelogend is not null
                                and l2.timelogstart is not null
                                and t2.projectid = projects.projectid) as totalprojecttime,
-                           (select sum(l2.timelogend - l2.timelogstart)
+                           (select sum(timestampdiff(second, l2.timelogstart, l2.timelogend))
                               from webapp.tasks t2
                               left
                              outer
