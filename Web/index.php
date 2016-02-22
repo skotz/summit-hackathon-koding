@@ -212,12 +212,55 @@ require_once("lib/user.php");
             </div>
         </div>
     </div>
+    <div class="modal fade" id="modal-edit-project" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Edit Project</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="alert alert-danger modal-project-errors" role="alert">
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                            <span class="sr-only">Oops!</span>
+                            <span class="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="project-name-label">Name</span>
+                            <input type="text" class="form-control" id="modal-project-name" aria-describedby="project-name-label">
+                        </div>
+                    </div>
+                </div>
+                <div class="row row-buff">
+                    <div class="col-xs-12">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="project-color-label">Color</span>
+                            <input type="text" class="form-control" id="modal-project-color" aria-describedby="project-color-label">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="modal-project-delete" class="btn btn-danger pull-left">Delete</button>
+                <button type="button" id="modal-project-close" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" id="modal-project-update" class="btn btn-success">Update</button>
+            </div>
+            </div>
+        </div>
+    </div>
     <footer>
         &copy; 2016 Scott Clayton &bull; 
         <a href="https://github.com/skotz/summit-hackathon-koding" target="_blank">GitHub</a> &bull; 
         <a href="https://www.koding.com/Hackathon" target="_blank">Virtual Hackathon</a>
     </footer>
     <script src="//code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <script src="js/bootstrap-colorpicker.min.js"></script>
     <script src="js/scripts.js"></script>
 </body>

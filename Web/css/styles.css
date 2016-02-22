@@ -16,10 +16,12 @@
 .project-errors,
 .project-success,
 .task-errors,
-.task-success {
+.task-success,
+.modal-project-errors {
     display: none;
 }
-.page-dash .panel .input-group-addon {
+.page-dash .panel .input-group-addon,
+.modal-dialog .input-group-addon {
     min-width: 70px;
 }
 .project {
@@ -54,6 +56,19 @@
 }
 .task-time {
     text-align: right;
+}
+.edit {
+    font-size: 14px;
+    opacity: 0.5;
+    position: relative;
+    left: 15px;
+    top: -2px;
+}
+.edit:hover {
+    text-shadow: 0 0 20px #000, 0 0 6px #000;
+    color: #FFFFFF;
+    opacity: 1;
+    cursor: pointer;
 }
 footer {
     margin-top: 30px;

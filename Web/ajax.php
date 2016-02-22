@@ -292,6 +292,42 @@ if (isset($_POST['action']))
             }
             break;
             
+        case "updateproject":
+            if ($user != "" && isset($_POST['projectid']) && isset($_POST['projectname']) && isset($_POST['projectcolor']) && projectBelongsToUser($_POST['projectid'], $user)) 
+            {
+                $projectid = $_POST['projectid'];
+                $projectname = $_POST['projectname'];
+                $projectcolor = $_POST['projectcolor'];
+                
+                $sql = $db->prepare('update webapp.projects set projectname = ?, projectcolor = ? where username = ? and projectid = ?');
+                $sql->bind_param('ssss', $projectname, $projectcolor, $user, $projectid);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
+        case "deleteproject":
+            if ($user != "" && isset($_POST['projectid'])) 
+            {
+                $projectid = $_POST['projectid'];
+                
+                $sql = $db->prepare('delete from webapp.projects where username = ? and projectid = ?');
+                $sql->bind_param('ss', $user, $projectid);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
         case "createtask":
             if ($user != "" && isset($_POST['taskname']) && isset($_POST['projectid']) && projectBelongsToUser($_POST['projectid'], $user)) 
             {
@@ -311,7 +347,7 @@ if (isset($_POST['action']))
             break;
             
         case "startlog":
-            if ($user != "" && isset($_POST['taskid']) && isset($_POST['timelogstart'])) 
+            if ($user != "" && isset($_POST['taskid']) && isset($_POST['timelogstart']) && taskBelongsToUser($_POST['taskid'], $user)) 
             {
                 $taskid = $_POST['taskid'];
                 $timelogstart = $_POST['timelogstart'];

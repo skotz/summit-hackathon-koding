@@ -12,11 +12,11 @@ $(function(){
         if ($el.hasClass("recording")) {
             $color = "255, 0, 0";
         }
-        if ($el.data("projectcolor") == "yes") {
-            $color = $el.css("background-color").replace('rgb(', '').replace(')', '');
-            $opacity1 = 1.0;
-            $opacity2 = 0.8;
-        }
+        //if ($el.data("projectcolor") == "yes") {
+        //    $color = $el.css("background-color").replace('rgb(', '').replace(')', '');
+        //    $opacity1 = 1.0;
+        //    $opacity2 = 0.8;
+        //}
         $el.css("background", "-webkit-linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
         $el.css("background", "-moz-linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
         $el.css("background", "-ms-linear-gradient(left, rgba(" + $color + ", " + $opacity1 + ") " + percent + "%, rgba(" + $color + ", " + $opacity2 + ") " + percent + "%)");
@@ -67,6 +67,18 @@ $(function(){
                 });  
             }        
         });  
+        
+        // Links for editing a project
+        $(".edit").click(function() {
+            var $proj = $(this).closest(".project");
+            $("#modal-project-name").val($(this).parent().text()).data("projectid", $proj.data("projectid"));
+            $("#modal-project-color").val($proj.data("projectcolor"));
+            try {
+                $("#modal-project-color").colorpicker('destroy');
+            } catch (ex) { }
+            $("#modal-project-color").colorpicker({ format: 'hex', color: $proj.data("projectcolor") });
+            $("#modal-edit-project").modal();
+        });
     };
     
     String.prototype.toHHMMSS = function () {
@@ -116,11 +128,12 @@ $(function(){
                                 text : proj.projectname 
                             }));
     
-                            markup += "<div class='project' style='background: " + proj.projectcolor + "' data-projectcolor='yes' data-projectid='" + key + "' data-percent='" + (100 * proj.totalprojecttime / proj.alltime) + "'>";
+                            markup += "<div class='project' style='background: " + proj.projectcolor + "' data-projectcolor='" + proj.projectcolor + "' data-projectid='" + key + "' data-percent='" + (100 * proj.totalprojecttime / proj.alltime) + "'>";
                             markup += "<div class='row'>";
                             markup += "<div class='col-xs-8'>";
                             markup += "<h2>";
-                            markup += proj.projectname; 
+                            markup += proj.projectname;
+                            markup += "<span class='glyphicon glyphicon-pencil edit'></span>";                            
                             markup += "</h2>";
                             markup += "</div>"; // end col-xs-8
                             markup += "<div class='col-xs-4'>";
@@ -329,6 +342,58 @@ $(function(){
                 error: needToLogIn
             });
         }
+    });
+    
+    $("#modal-project-update").click(function() {
+        $(".modal-project-errors").stop().hide();
+        if ($("#modal-project-name").val().length == 0) {
+            $(".modal-project-errors .error-message").html("Project name is required.");
+            $(".modal-project-errors").stop().fadeIn();
+        } else if ($("#modal-project-color").val().replace("#", "").length != 6) {
+            $(".modal-project-errors .error-message").html("Color must be a 6 character hexidecimal color code.");
+            $(".modal-project-errors").stop().fadeIn();
+        } else {
+            $.ajax({
+                url: 'ajax.php',
+                type: 'post',
+                data: { 
+                    'action': 'updateproject', 
+                    'projectid': $("#modal-project-name").data("projectid"), 
+                    'projectname': $("#modal-project-name").val(), 
+                    'projectcolor': $("#modal-project-color").val().replace("#", "")
+                },
+                success: function(response) {
+                    var data = $.parseJSON(response);
+                    if (data.success) {
+                        $("#modal-project-name").val("");
+                        $("#modal-project-color").val("");
+                        $(".project-success").stop().fadeIn().delay(5000).fadeOut();
+                        $('#modal-edit-project').modal('hide');
+                        loadDash();
+                    } else {
+                        $(".modal-project-errors .error-message").html("Something went wrong...");
+                        $(".modal-project-errors").stop().fadeIn();
+                    }
+                },
+                error: needToLogIn
+            });
+        }
+    });
+    
+    $("#modal-project-delete").click(function() {
+        $.ajax({
+            url: 'ajax.php',
+            type: 'post',
+            data: { 
+                'action': 'deleteproject', 
+                'projectid': $("#modal-project-name").data("projectid")
+            },
+            success: function() {
+                $('#modal-edit-project').modal('hide');
+                loadDash();
+            },
+            error: needToLogIn
+        });
     });
     
     $("#task-add").click(function() {
