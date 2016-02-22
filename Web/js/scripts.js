@@ -35,7 +35,7 @@ $(function(){
                     data: { 
                         'action': 'endlog', 
                         'taskid': thisTask.data("taskid"), 
-                        'timelogend': new Date().toLocaleString().replace(',', '')
+                        'timelogend': getCurrentFormattedDate()
                     },
                     success: function(response) {
                         var data = $.parseJSON(response);
@@ -54,7 +54,7 @@ $(function(){
                     data: { 
                         'action': 'startlog', 
                         'taskid': thisTask.data("taskid"), 
-                        'timelogstart': new Date().toLocaleString().replace(',', '')
+                        'timelogstart': getCurrentFormattedDate()
                     },
                     success: function(response) {
                         var data = $.parseJSON(response);
@@ -101,6 +101,18 @@ $(function(){
         return (hours != "00" ? hours + ':' : "") + minutes + ':' + seconds
     };
     
+    var getCurrentFormattedDate = function () {
+        var date = new Date();
+        var hour = date.getHours();
+        var pm = hour < 12 ? "AM" : "PM";
+        var min = date.getMinutes();
+        var sec = date.getSeconds();
+        hour = hour > 12 ? hour - 12 : hour;
+        
+        return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear() + " " + 
+            hour + ":" + (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec + " " + pm;
+    };
+    
     // Create the markup for projects and tasks
     var loadDash = function () {
         $.ajax({
@@ -108,7 +120,7 @@ $(function(){
             type: 'post',
             data: { 
                 'action': 'load',
-                'date': new Date().toLocaleString().replace(',', '')
+                'date': getCurrentFormattedDate()
             },
             success: function(response) {
                 var data = $.parseJSON(response);
