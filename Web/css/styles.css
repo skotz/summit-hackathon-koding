@@ -17,7 +17,8 @@
 .project-success,
 .task-errors,
 .task-success,
-.modal-project-errors {
+.modal-project-errors,
+.modal-task-errors {
     display: none;
 }
 .page-dash .panel .input-group-addon,
@@ -64,11 +65,22 @@
     left: 15px;
     top: -2px;
 }
-.edit:hover {
+.edit-task {
+    font-size: 12px;
+    opacity: 0.5;
+    position: relative;
+    left: 15px;
+}
+.edit:hover,
+.edit-task:hover {
     text-shadow: 0 0 20px #000, 0 0 6px #000;
     color: #FFFFFF;
     opacity: 1;
     cursor: pointer;
+}
+#view-task,
+#toggle-edit {
+    width: 38px;
 }
 footer {
     margin-top: 30px;

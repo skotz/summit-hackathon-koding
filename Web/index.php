@@ -114,7 +114,8 @@ require_once("lib/user.php");
                         </div>
                         <div class="col-sm-4 col-menu">
                             <a href="javascript: void(0)" id="logout" class="btn btn-default pull-right">Sign Out</a>
-                            <a href="javascript: void(0)" id="view-task" class="btn btn-primary pull-right">%</a>
+                            <a href="javascript: void(0)" id="view-task" class="btn btn-default pull-right">%</a>
+                            <a href="javascript: void(0)" id="toggle-edit" class="btn btn-default pull-right"><span class='glyphicon glyphicon-pencil'></span></a>
                         </div>
                     </div>
                 </div>
@@ -250,6 +251,40 @@ require_once("lib/user.php");
                 <button type="button" id="modal-project-delete" class="btn btn-danger pull-left">Delete</button>
                 <button type="button" id="modal-project-close" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" id="modal-project-update" class="btn btn-success">Update</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modal-edit-task" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Edit Task</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="alert alert-danger modal-task-errors" role="alert">
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                            <span class="sr-only">Oops!</span>
+                            <span class="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="task-name-label">Name</span>
+                            <input type="text" class="form-control" id="modal-task-name" aria-describedby="task-name-label">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="modal-task-delete" class="btn btn-danger pull-left">Delete</button>
+                <button type="button" id="modal-task-close" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" id="modal-task-update" class="btn btn-success">Update</button>
             </div>
             </div>
         </div>

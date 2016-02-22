@@ -346,6 +346,41 @@ if (isset($_POST['action']))
             }
             break;
             
+        case "updatetask":
+            if ($user != "" && isset($_POST['taskname']) && isset($_POST['taskid']) && taskBelongsToUser($_POST['taskid'], $user)) 
+            {
+                $taskname = $_POST['taskname'];
+                $taskid = $_POST['taskid'];
+                
+                $sql = $db->prepare('update webapp.tasks set taskname = ? where taskid = ?');
+                $sql->bind_param('ss', $taskname, $taskid);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
+        case "deletetask":
+            if ($user != "" && isset($_POST['taskid']) && taskBelongsToUser($_POST['taskid'], $user)) 
+            {
+                $taskid = $_POST['taskid'];
+                
+                $sql = $db->prepare('delete from webapp.tasks where taskid = ?');
+                $sql->bind_param('s', $taskid);
+                $sql->execute();
+
+                echo "{ \"success\": true }";
+            }
+            else
+            {
+                echo "{ \"success\": false }";
+            }
+            break;
+            
         case "startlog":
             if ($user != "" && isset($_POST['taskid']) && isset($_POST['timelogstart']) && taskBelongsToUser($_POST['taskid'], $user)) 
             {

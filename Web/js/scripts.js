@@ -79,6 +79,14 @@ $(function(){
             $("#modal-project-color").colorpicker({ format: 'hex', color: $proj.data("projectcolor") });
             $("#modal-edit-project").modal();
         });
+        
+        // Links for editing a task
+        $(".edit-task").click(function(e) {
+            e.stopPropagation();
+            var $task = $(this).closest(".task");
+            $("#modal-task-name").val($(this).parent().text()).data("taskid", $task.data("taskid"));
+            $("#modal-edit-task").modal();
+        });
     };
     
     String.prototype.toHHMMSS = function () {
@@ -133,7 +141,9 @@ $(function(){
                             markup += "<div class='col-xs-8'>";
                             markup += "<h2>";
                             markup += proj.projectname;
-                            markup += "<span class='glyphicon glyphicon-pencil edit'></span>";                            
+                            if ($("#toggle-edit").hasClass("show-edits")) {
+                                markup += "<span class='glyphicon glyphicon-pencil edit'></span>";
+                            }                            
                             markup += "</h2>";
                             markup += "</div>"; // end col-xs-8
                             markup += "<div class='col-xs-4'>";
@@ -164,7 +174,7 @@ $(function(){
                                                     partialTime = log.partialTime;
                                                     var updateTime = (function(thisTask, thisLogStart) { 
                                                         return function () {
-                                                            console.log(thisTask);
+                                                            //console.log(thisTask);
                                                             var seconds = (new Date() - new Date(thisLogStart)) / 1000;
                                                             if (seconds < 0) {
                                                                 // HACK for daylight savings... Figure out UTC parsing later
@@ -185,6 +195,9 @@ $(function(){
                                         markup += "<div class='row'>";
                                         markup += "<div class='col-xs-8'>";
                                         markup += task.taskname;
+                                        if ($("#toggle-edit").hasClass("show-edits")) {
+                                            markup += "<span class='glyphicon glyphicon-pencil edit-task'></span>";   
+                                        }
                                         markup += "</div>"; // end col-xs-8
                                         markup += "<div class='col-xs-4'>";
                                         if (task.recording && partialTime >= 0) {
@@ -247,7 +260,22 @@ $(function(){
     }
     
     $("#view-task").click(function() {
-        $(this).toggleClass("show-percentages").html($(this).hasClass("show-percentages") ? "#" : "%");
+        $(this).toggleClass("show-percentages"); // .html($(this).hasClass("show-percentages") ? "#" : "%");
+        if ($(this).hasClass("show-percentages")) {
+            $(this).removeClass("btn-default").addClass("btn-primary");
+        } else {
+            $(this).removeClass("btn-primary").addClass("btn-default");
+        }
+        loadDash();
+    });
+    
+    $("#toggle-edit").click(function() {
+        $(this).toggleClass("show-edits");
+        if ($(this).hasClass("show-edits")) {
+            $(this).removeClass("btn-default").addClass("btn-primary");
+        } else {
+            $(this).removeClass("btn-primary").addClass("btn-default");
+        }
         loadDash();
     });
    
@@ -431,6 +459,52 @@ $(function(){
         }   
     });
     
+    $("#modal-task-update").click(function() {
+        $(".modal-task-errors").stop().hide();
+        $(".modal-task-success").stop().hide();
+        if ($("#modal-task-name").val().length == 0) {
+            $(".modal-task-errors .error-message").html("Task name is required.");
+            $(".modal-task-errors").stop().fadeIn();
+        } else {
+            $.ajax({
+                url: 'ajax.php',
+                type: 'post',
+                data: { 
+                    'action': 'updatetask', 
+                    'taskname': $("#modal-task-name").val(), 
+                    'taskid': $("#modal-task-name").data("taskid")
+                },
+                success: function(response) {
+                    var data = $.parseJSON(response);
+                    if (data.success) {
+                        $("#modal-task-name").val("");
+                        $('#modal-edit-task').modal('hide');
+                        loadDash();
+                    } else {
+                        $(".modal-task-errors .error-message").html("Something went wrong...");
+                        $(".modal-task-errors").stop().fadeIn();
+                    }
+                },
+                error: needToLogIn
+            });     
+        }   
+    });
+    
+    $("#modal-task-delete").click(function() {
+        $.ajax({
+            url: 'ajax.php',
+            type: 'post',
+            data: { 
+                'action': 'deletetask', 
+                'taskid': $("#modal-task-name").data("taskid")
+            },
+            success: function() {
+                $('#modal-edit-task').modal('hide');
+                loadDash();
+            },
+            error: needToLogIn
+        });
+    });
     
     $("#logout").click(function() {
         $.ajax({
